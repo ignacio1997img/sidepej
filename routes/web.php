@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\UserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -25,4 +26,9 @@ Route::get('login', function () {
 
 Route::group(['prefix' => 'admin'], function () {
     Voyager::routes();
+
+    Route::resource('usuario', UserController::class);
+    // Route::post('usuarios/desactivar', [UserController::class, 'desactivar'])->name('almacen_desactivar');
+    // Route::post('usuarios/activar', [UserController::class, 'activar'])->name('almacen_activar');
+
 });
