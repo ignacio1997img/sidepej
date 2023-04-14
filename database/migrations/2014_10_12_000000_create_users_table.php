@@ -20,7 +20,15 @@ class CreateUsersTable extends Migration
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
             $table->rememberToken();
+
+            $table->integer('people_id')->nullable();
+            $table->string('ci')->nullable();
+            // $table->smallInteger('status')->default(1);
+            $table->foreignId('office_id')->nullable()->constrained('offices');
+            
             $table->timestamps();
+            $table->softDeletes();
+
         });
     }
 

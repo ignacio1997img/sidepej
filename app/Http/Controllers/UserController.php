@@ -2,58 +2,82 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Person;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use App\Models\User;
 
 class UserController extends Controller
 {
-    public function index()
-    {
+    // para obrtener las personas interna o externas
+    public function getFuncionario(Request $request){
+        $search = $request->search;
+        $type = $request->type;
 
-        // $servername = "192.168.192.112";
-        // $database = "gobe";
-        // $username = "siscor";
-        // $password = ".*Sscr2020*.";
+                $personas = DB::connection('mamore')->table('people as p')
+                    ->join('contracts as c', 'c.person_id', 'p.id')
+                    ->select('p.id', 'p.first_name as nombre', 'p.last_name as apellido', 'p.ci' , DB::raw("CONCAT(p.first_name, ' ', p.last_name) as nombre_completo"))
+                    ->where('c.status', 'firmado')
+                    ->where('p.deleted_at', null)
+                    ->where('c.deleted_at', null)
+                    ->whereRaw('(p.ci like "%' .$search . '%" or '.DB::raw("CONCAT(p.first_name, ' ', p.last_name)"). 'like "%' . $search . '%")')
+                    ->get();
+                    $response = array();
+                foreach($personas as $persona){
 
-        $n_server="143.198.165.60:3306";
-        $n_database="proservice";
-        $n_username="root";
-        $n_userpass="Code1997Soft";
-        $db = mysqli_connect($n_server,$n_username,$n_userpass,$n_database) or die ("Error al conectar con el servidor");
+                    $response[] = array(
+                        "id"=>$persona->id,
+                        "text"=>$persona->nombre_completo,
+                        "nombre" => $persona->nombre,
+                        "apellido" => $persona->apellido,
+                        "ci" => $persona->ci,
+                    );
+                }
 
-        if (!$db) {
-            echo "Error: Unable to connect to MySQL." . PHP_EOL;
-            echo "Debugging errno: " . mysqli_connect_errno() . PHP_EOL;
-            echo "Debugging error: " . mysqli_connect_error() . PHP_EOL;
-            exit;
+        return response()->json($response);
+    }
+    public function store(Request $request){
+        
+        $ok = User::where('people_id', $request->funcionario_id)->first();
+        if($ok)
+        {
+            return redirect()->route('voyager.users.index')->with(['message' => 'El Funcionario ya cuenta con usuario.', 'alert-type' => 'error']);
         }
 
-        return 11;
+        $ok = User::where('email', $request->email)->first();
+        if($ok)
+        {
+            return redirect()->route('voyager.users.index')->with(['message' => 'Elija otro correo por favor.', 'alert-type' => 'error']);
+        }
+        
+        DB::beginTransaction();
+        try {
 
+            //  Person::where('id', $request->funcionario_id)->first();
+            
+            $user = User::create([
+                'ci'=> $this->getPerson($request->funcionario_id)->ci,
+                'name' =>  $request->name,
+                'people_id' => $request->funcionario_id,
+                'role_id' => $request->role_id,
+                'email' => $request->email,
+                'avatar' => 'users/default.png',
+                'password' => bcrypt($request->password),
+            ]);
+            
+            
+            
+            if ($request->user_belongstomany_role_relationship <> '') {
+                $user->roles()->attach($request->user_belongstomany_role_relationship);
+            }
 
-        $servername = "143.198.165.60";
-        $database = "proservice";
-        $username = "root";
-        $password = "Code1997Soft";
-        // Create connection
-        $conn = mysqli_connect($servername, $username, $password, $database);
-        // Check connection
-        if (!$conn) {
-            die("Connection failed: " . mysqli_connect_error());
-        }else
+            DB::commit();
+            return redirect()->route('voyager.users.index')->with(['message' => "El usuario, se registro con exito.", 'alert-type' => 'success']);
+        } catch (\Exception $e) {
+            DB::rollback();
+            return redirect()->route('voyager.users.index')->with(['message' => 'Ocurrio un error.', 'alert-type' => 'error']);
 
-        echo "Connected successfully";
-        mysqli_close($conn);
-
-        return 1;
-
-
-        return DB::connection('mamore')->table('apoyo')->get();
-        return 1;
-    }
-    public function store(Request $request)
-    {
-        return $request;
+        }     
     }
 }

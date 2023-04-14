@@ -32,6 +32,9 @@ class UsersTableSeeder extends Seeder
                 'settings' => NULL,
                 'created_at' => '2023-03-15 13:19:36',
                 'updated_at' => '2023-03-15 13:19:36',
+                'people_id' => NULL,
+                'ci' => NULL,
+                'deleted_at' => NULL,
             ),
         ));
         
