@@ -17,5 +17,6 @@ class NameFile extends Model
         'poder',
         'deleted_at',
         'registerUser'
+        
     ];
 }
