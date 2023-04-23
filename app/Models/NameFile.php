@@ -15,6 +15,7 @@ class NameFile extends Model
         'carnet',
         'deposito',
         'poder',
-        'deleted_at'
+        'deleted_at',
+        'registerUser'
     ];
 }

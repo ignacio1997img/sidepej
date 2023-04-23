@@ -20,6 +20,8 @@ class CreateNameFilesTable extends Migration
             $table->text('carnet')->nullable();
             $table->text('deposito')->nullable();
             $table->text('poder')->nullable();
+            
+            $table->string('registerUser')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });
